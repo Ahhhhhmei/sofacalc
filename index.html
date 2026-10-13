@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>沙發維修與翻新預估報價</title>
+  <style>
+    :root {
+      --primary: #1e293b;
+      --accent: #2563eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --line-green: #06c755;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding: 20px 16px 140px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+    }
+
+    header {
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    header p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .card-group {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 18px 16px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+
+    .group-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+    .option-btn {
+      background: #f8fafc;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 10px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #334155;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .option-btn:hover {
+      border-color: #cbd5e1;
+    }
+
+    .option-btn.active {
+      border-color: var(--primary);
+      background-color: #f1f5f9;
+      color: var(--primary);
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+    }
+
+    /* 人數計數器 */
+    .counter-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+
+    .counter-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: #ffffff;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+
+    .counter-btn:active {
+      background: #e2e8f0;
+    }
+
+    .counter-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .counter-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .sub-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* 備註提醒 */
+    .disclaimer {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      text-align: center;
+      line-height: 1.5;
+      margin-top: 20px;
+      padding: 0 8px;
+    }
+
+    /* 底部結算列 */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border);
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .bottom-content {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .price-label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .price-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #b91c1c;
+    }
+
+    .btn-submit {
+      width: 100%;
+      background-color: var(--line-green);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-submit:active {
+      background-color: #05a847;
+      transform: scale(0.99);
+    }
+
+    /* 提示彈窗 Toast */
+    .toast {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-80px);
+      background: rgba(15, 23, 42, 0.92);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 25px;
+      font-size: 0.85rem;
+      transition: transform 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      z-index: 100;
+      text-align: center;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toast" class="toast">規格已複製！請加入好友後貼上訊息洽詢</div>
+
+  <div class="container">
+    <header>
+      <h1>沙發翻新與維修試算</h1>
+      <p>點選您的需求規格，快速取得大約預算</p>
+    </header>
+
+    <!-- C. 沙發類型 -->
+    <div class="card-group">
+      <div class="group-title">1. 選擇沙發類型</div>
+      <div class="grid grid-2" id="typeGroup">
+        <div class="option-btn active" data-type="traditional">傳統沙發</div>
+        <div class="option-btn" data-type="french">法式沙發</div>
+        <div class="option-btn" data-type="standardL">標準 L 型</div>
+        <div class="option-btn" data-type="largeL">加大 L 型</div>
+      </div>
+    </div>
+
+    <!-- 座位人數調查（僅傳統/法式顯示） -->
+    <div class="card-group" id="seatsCard">
+      <div class="group-title">2. 座位人數調查</div>
+      <div class="counter-wrapper">
+        <button class="counter-btn" id="btnMinus" type="button">−</button>
+        <div class="counter-value"><span id="seatCount">3</span> 人座</div>
+        <button class="counter-btn" id="btnPlus" type="button">+</button>
+      </div>
+      <div class="sub-hint">例：若為 1+2+3，請選 6 人</div>
+    </div>
+
+    <!-- A. 需求項目 -->
+    <div class="card-group">
+      <div class="group-title"><span id="serviceStepNum">3</span>. 需求項目</div>
+      <div class="grid grid-2" id="serviceGroup">
+        <div class="option-btn active" data-service="leather">更換皮革</div>
+        <div class="option-btn" data-service="leatherFoam">更換皮革+泡棉</div>
+        <div class="option-btn" data-service="foam">更換泡棉</div>
+        <div class="option-btn" data-service="base">維修底座</div>
+        <div class="option-btn" data-service="cushion" id="cushionBtn">椅墊訂做</div>
+      </div>
+    </div>
+
+    <!-- B. 皮革選擇（更換泡棉、維修底座時隱藏） -->
+    <div class="card-group" id="leatherCard">
+      <div class="group-title"><span id="leatherStepNum">4</span>. 皮革/布料選擇</div>
+      <div class="grid grid-2" id="leatherGroup">
+        <div class="option-btn active" data-leather="latex">透氣乳膠皮 (合成)</div>
+        <div class="option-btn" data-leather="catLeather">貓抓皮</div>
+        <div class="option-btn" data-leather="catFabric">貓抓布</div>
+        <div class="option-btn" data-leather="realLeather">真皮</div>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      以上報價僅供參考，實際價格仍以現場評估與報價為主
+    </div>
+  </div>
+
+  <!-- 底部固定結算列 -->
+  <div class="bottom-bar">
+    <div class="bottom-content">
+      <div class="price-row">
+        <span class="price-label">預估總額 (含運費及評估基準)</span>
+        <span class="price-value" id="totalPrice">NT$ 0</span>
+      </div>
+      <button class="btn-submit" id="btnLine">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M22 10.3c0-4.6-4.5-8.3-10-8.3S2 5.7 2 10.3c0 4.1 3.6 7.6 8.5 8.2.3.1.8.2.9.6.1.3.1.8 0 1.2l-.3 1.6c-.1.5-.2.8.2.6.4-.3 2.5-1.5 3.4-2.1.5-.3 1-.5 1.5-.5 3.6 0 5.8-3.4 5.8-5.7z"/>
+        </svg>
+        複製規格並前往 LINE 洽詢
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const LINE_URL = "https://line.me/ti/p/iU1C5H11FF";
+
+    // 價格表資料庫
+    const PRICE_DATA = {
+      traditional: {
+        labor: 2000,
+        leather: { latex: 5000, catLeather: 5000, catFabric: 6000, realLeather: 8000 },
+        foam: 1500,
+        base: 3000,
+        cushion: { latex: 3800, catLeather: 3800, catFabric: 4200, realLeather: 5000 }
+      },
+      french: {
+        labor: 2000,
+        leather: { latex: 6000, catLeather: 6000, catFabric: 8000, realLeather: 9000 },
+        foam: 1500,
+        base: 3000,
+        cushion: { latex: 3800, catLeather: 3800, catFabric: 4200, realLeather: 5000 }
+      },
+      standardL: {
+        labor: 13000,
+        leather: { latex: 19000, catLeather: 19000, catFabric: 22000, realLeather: 33000 },
+        foam: 3000,
+        base: 12000,
+        cushion: null
+      },
+      largeL: {
+        labor: 17000,
+        leather: { latex: 20000, catLeather: 20000, catFabric: 25000, realLeather: 39000 },
+        foam: 3000,
+        base: 14000,
+        cushion: null
+      }
+    };
+
+    // 目前選取狀態
+    let state = {
+      type: 'traditional',
+      seats: 3,
+      service: 'leather',
+      leather: 'latex'
+    };
+
+    // DOM 元素
+    const seatsCard = document.getElementById('seatsCard');
+    const leatherCard = document.getElementById('leatherCard');
+    const cushionBtn = document.getElementById('cushionBtn');
+    const seatCountEl = document.getElementById('seatCount');
+    const btnMinus = document.getElementById('btnMinus');
+    const btnPlus = document.getElementById('btnPlus');
+    const totalPriceEl = document.getElementById('totalPrice');
+    const btnLine = document.getElementById('btnLine');
+    const toast = document.getElementById('toast');
+    const serviceStepNum = document.getElementById('serviceStepNum');
+    const leatherStepNum = document.getElementById('leatherStepNum');
+
+    // 判斷是否為 L 型
+    function isLType() {
+      return state.type === 'standardL' || state.type === 'largeL';
+    }
+
+    // 判斷是否需要皮革選項
+    function needsLeather() {
+      return state.service !== 'foam' && state.service !== 'base';
+    }
+
+    // 更新介面狀態（顯示/隱藏與可用性）
+    function updateUIState() {
+      const isL = isLType();
+
+      // 1. 人數區塊
+      if (isL) {
+        seatsCard.style.display = 'none';
+        serviceStepNum.textContent = '2';
+      } else {
+        seatsCard.style.display = 'block';
+        serviceStepNum.textContent = '3';
+      }
+
+      // 2. 椅墊訂做選項（L 型沒有）
+      if (isL) {
+        cushionBtn.style.display = 'none';
+        if (state.service === 'cushion') {
+          state.service = 'leather';
+          document.querySelectorAll('#serviceGroup .option-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.service === 'leather');
+          });
+        }
+      } else {
+        cushionBtn.style.display = 'flex';
+      }
+
+      // 3. 皮革區塊（更換泡棉、維修底座無須選擇）
+      if (!needsLeather()) {
+        leatherCard.style.display = 'none';
+      } else {
+        leatherCard.style.display = 'block';
+        leatherStepNum.textContent = isL ? '3' : '4';
+      }
+
+      // 4. 人數加減按鈕限制 (1~8人)
+      btnMinus.disabled = state.seats <= 1;
+      btnPlus.disabled = state.seats >= 8;
+      seatCountEl.textContent = state.seats;
+    }
+
+    // 計算價格公式
+    function calculatePrice() {
+      const p = PRICE_DATA[state.type];
+      const isL = isLType();
+      const n = isL ? 1 : state.seats; // L 型以 1 座為單位
+      let calculated = 0;
+
+      const labor = p.labor;
+      const leather = p.leather ? p.leather[state.leather] : 0;
+      const foam = p.foam;
+      const base = p.base;
+      const cushion = p.cushion ? p.cushion[state.leather] : 0;
+
+      switch(state.service) {
+        case 'leather':
+          // 更換皮革 = 人數 * (工錢 + 皮革)
+          // 若為 L 型，人數為 1 即為 工錢 + 皮革
+          calculated = n * (labor + leather);
+          break;
+
+        case 'leatherFoam':
+          // 更換皮革+泡棉 = 工錢 + 人數 * (皮革 + 泡棉)
+          // 若為 L 型，人數為 1 即為 工錢 + 皮革 + 泡棉
+          calculated = labor + (n * (leather + foam));
+          break;
+
+        case 'foam':
+          // 更換泡棉 = 人數 * (工錢 + 泡棉)
+          calculated = n * (labor + foam);
+          break;
+
+        case 'base':
+          // 維修底座 = 人數 * 底座
+          calculated = n * base;
+          break;
+
+        case 'cushion':
+          // 椅墊訂做 = 人數 * 椅墊
+          calculated = n * cushion;
+          break;
+      }
+
+      // 預估總額請都 + 1000
+      const total = calculated + 1000;
+      totalPriceEl.textContent = `NT$ ${total.toLocaleString()}`;
+    }
+
+    // 重新運算與渲染
+    function refresh() {
+      updateUIState();
+      calculatePrice();
+    }
+
+    // 事件監聽：沙發類型
+    document.querySelectorAll('#typeGroup .option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#typeGroup .option-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.type = btn.dataset.type;
+        refresh();
+      });
+    });
+
+    // 事件監聽：需求項目
+    document.querySelectorAll('#serviceGroup .option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#serviceGroup .option-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.service = btn.dataset.service;
+        refresh();
+      });
+    });
+
+    // 事件監聽：皮革選擇
+    document.querySelectorAll('#leatherGroup .option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#leatherGroup .option-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.leather = btn.dataset.leather;
+        refresh();
+      });
+    });
+
+    // 事件監聽：人數加減
+    btnMinus.addEventListener('click', () => {
+      if (state.seats > 1) {
+        state.seats--;
+        refresh();
+      }
+    });
+
+    btnPlus.addEventListener('click', () => {
+      if (state.seats < 8) {
+        state.seats++;
+        refresh();
+      }
+    });
+
+    // 取得選取摘要文字
+    function getSummaryText() {
+      const typeText = document.querySelector('#typeGroup .active').textContent.trim();
+      const serviceText = document.querySelector('#serviceGroup .active').textContent.trim();
+      const leatherText = needsLeather() ? document.querySelector('#leatherGroup .active').textContent.trim() : '無須選擇';
+      const seatText = isLType() ? '一座 (整組)' : `${state.seats} 人座`;
+      const priceText = totalPriceEl.textContent.trim();
+
+      return `【沙發翻新維修試算需求】
+・沙發類型：${typeText}
+・座位規格：${seatText}
+・需求項目：${serviceText}
+・皮布材質：${leatherText}
+・預估總額：${priceText}
+
+您好，我想進一步諮詢以上項目的維修細節與預約評估！`;
+    }
+
+    // 複製至剪貼簿
+    async function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        textArea.remove();
+      }
+    }
+
+    // 點擊前往 LINE
+    btnLine.addEventListener('click', async () => {
+      const text = getSummaryText();
+      try {
+        await copyToClipboard(text);
+        toast.classList.add('show');
+        setTimeout(() => {
+          toast.classList.remove('show');
+          window.location.href = LINE_URL;
+        }, 1000);
+      } catch (e) {
+        window.location.href = LINE_URL;
+      }
+    });
+
+    // 初始載入運算
+    refresh();
+  </script>
+</body>
+</html>
