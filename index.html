@@ -2,8 +2,8 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>沙發維修與翻新預估報價</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>沙發翻新維修估價系統</title>
   <style>
     :root {
       --primary: #1e293b;
@@ -11,9 +11,11 @@
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #e2e8f0;
+      --border-active: #0f172a;
       --text-main: #0f172a;
       --text-muted: #64748b;
       --line-green: #06c755;
+      --warning: #dc2626;
     }
 
     * {
@@ -27,14 +29,14 @@
     body {
       background-color: var(--bg);
       color: var(--text-main);
-      padding: 20px 16px 140px;
+      padding: 24px 16px 140px;
       display: flex;
       justify-content: center;
     }
 
     .container {
       width: 100%;
-      max-width: 500px;
+      max-width: 480px;
     }
 
     header {
@@ -45,32 +47,38 @@
     header h1 {
       font-size: 1.45rem;
       font-weight: 700;
-      color: var(--text-main);
+      letter-spacing: -0.02em;
       margin-bottom: 6px;
     }
 
     header p {
-      font-size: 0.85rem;
+      font-size: 0.875rem;
       color: var(--text-muted);
     }
 
-    .card-group {
-      background: var(--card-bg);
-      border-radius: 16px;
-      padding: 18px 16px;
-      margin-bottom: 16px;
-      border: 1px solid var(--border);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    .section {
+      margin-bottom: 22px;
+      transition: all 0.2s ease;
     }
 
-    .group-title {
-      font-size: 0.9rem;
+    .section.hidden {
+      display: none;
+    }
+
+    .section-title {
+      font-size: 0.875rem;
       font-weight: 700;
       color: var(--text-main);
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       display: flex;
-      align-items: center;
-      gap: 6px;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .section-subtitle {
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: var(--text-muted);
     }
 
     .grid {
@@ -78,100 +86,132 @@
       gap: 10px;
     }
 
-    .grid-2 { grid-template-columns: repeat(2, 1fr); }
-    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
 
-    .option-btn {
-      background: #f8fafc;
+    .grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .option-card {
+      background: var(--card-bg);
       border: 1.5px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 10px;
+      border-radius: 12px;
+      padding: 14px 12px;
       text-align: center;
       cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: #334155;
       transition: all 0.15s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: relative;
+      user-select: none;
     }
 
-    .option-btn:hover {
-      border-color: #cbd5e1;
-    }
-
-    .option-btn.active {
-      border-color: var(--primary);
+    .option-card.active {
+      border-color: var(--border-active);
       background-color: #f1f5f9;
-      color: var(--primary);
-      font-weight: 700;
-      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    }
+
+    .option-card.disabled {
+      opacity: 0.45;
+      background-color: #f8fafc;
+      border-color: var(--border);
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .option-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .option-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
     }
 
     /* 人數計數器 */
     .counter-wrapper {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-top: 8px;
     }
 
-    .counter-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
+    .counter-label {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .counter-controls {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn-counter {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
       border: 1.5px solid var(--border);
       background: #ffffff;
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       font-weight: 600;
       color: var(--text-main);
-      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.15s;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
     }
 
-    .counter-btn:active {
-      background: #e2e8f0;
+    .btn-counter:active {
+      background: #f1f5f9;
+      border-color: var(--border-active);
     }
 
-    .counter-btn:disabled {
+    .btn-counter:disabled {
       opacity: 0.35;
       cursor: not-allowed;
     }
 
-    .counter-value {
-      font-size: 1.25rem;
+    .counter-val {
+      font-size: 1.15rem;
       font-weight: 700;
-      min-width: 80px;
+      min-width: 36px;
       text-align: center;
     }
 
-    .sub-hint {
+    .field-hint {
       font-size: 0.75rem;
       color: var(--text-muted);
       margin-top: 6px;
+      padding-left: 4px;
     }
 
-    /* 備註提醒 */
-    .disclaimer {
-      font-size: 0.8rem;
-      color: #94a3b8;
-      text-align: center;
+    /* 底部備註 */
+    .disclaimer-box {
+      margin-top: 24px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: #f1f5f9;
+      font-size: 0.78rem;
+      color: var(--text-muted);
       line-height: 1.5;
-      margin-top: 20px;
-      padding: 0 8px;
+      text-align: center;
     }
 
-    /* 底部結算列 */
+    /* 底部浮動結算 */
     .bottom-bar {
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border-top: 1px solid var(--border);
@@ -184,13 +224,18 @@
 
     .bottom-content {
       width: 100%;
-      max-width: 500px;
+      max-width: 480px;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
 
-    .price-row {
+    .price-container {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .price-main-row {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
@@ -198,17 +243,25 @@
 
     .price-label {
       font-size: 0.85rem;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text-muted);
     }
 
     .price-value {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
       font-weight: 800;
-      color: #b91c1c;
+      color: var(--text-main);
     }
 
-    .btn-submit {
+    .shipping-warning {
+      font-size: 0.75rem;
+      color: var(--warning);
+      margin-top: 2px;
+      text-align: right;
+      font-weight: 500;
+    }
+
+    .btn-line {
       width: 100%;
       background-color: var(--line-green);
       color: #ffffff;
@@ -222,31 +275,30 @@
       justify-content: center;
       gap: 8px;
       cursor: pointer;
-      transition: background 0.15s;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(6, 199, 85, 0.25);
+      transition: background 0.15s ease, transform 0.05s ease;
     }
 
-    .btn-submit:active {
-      background-color: #05a847;
+    .btn-line:active {
       transform: scale(0.99);
+      background-color: #05a847;
     }
 
-    /* 提示彈窗 Toast */
+    /* Toast 通知 */
     .toast {
       position: fixed;
-      top: 24px;
+      top: 20px;
       left: 50%;
-      transform: translateX(-50%) translateY(-80px);
-      background: rgba(15, 23, 42, 0.92);
+      transform: translateX(-50%) translateY(-60px);
+      background: rgba(15, 23, 42, 0.9);
       color: white;
-      padding: 12px 20px;
-      border-radius: 25px;
+      padding: 10px 18px;
+      border-radius: 20px;
       font-size: 0.85rem;
-      transition: transform 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-      z-index: 100;
-      text-align: center;
-      white-space: nowrap;
+      transition: transform 0.25s ease;
+      z-index: 1000;
       pointer-events: none;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
     .toast.show {
@@ -256,303 +308,344 @@
 </head>
 <body>
 
-  <div id="toast" class="toast">規格已複製！請加入好友後貼上訊息洽詢</div>
+  <div id="toast" class="toast">規格已複製，正前往 LINE！</div>
 
   <div class="container">
     <header>
-      <h1>沙發翻新與維修試算</h1>
-      <p>點選您的需求規格，快速取得大約預算</p>
+      <h1>沙發翻新・維修線上預估</h1>
+      <p>點選項目與規格，即時試算參考工料費用</p>
     </header>
 
     <!-- C. 沙發類型 -->
-    <div class="card-group">
-      <div class="group-title">1. 選擇沙發類型</div>
-      <div class="grid grid-2" id="typeGroup">
-        <div class="option-btn active" data-type="traditional">傳統沙發</div>
-        <div class="option-btn" data-type="french">法式沙發</div>
-        <div class="option-btn" data-type="standardL">標準 L 型</div>
-        <div class="option-btn" data-type="largeL">加大 L 型</div>
+    <div class="section">
+      <div class="section-title">1. 沙發型態</div>
+      <div class="grid grid-2" id="sofaTypeGrid">
+        <div class="option-card active" data-type="traditional">
+          <div class="option-name">傳統沙發</div>
+          <div class="option-desc">依人數計價</div>
+        </div>
+        <div class="option-card" data-type="french">
+          <div class="option-name">法式沙發</div>
+          <div class="option-desc">依人數計價</div>
+        </div>
+        <div class="option-card" data-type="std_l">
+          <div class="option-name">標準 L 型</div>
+          <div class="option-desc">以一座計價</div>
+        </div>
+        <div class="option-card" data-type="large_l">
+          <div class="option-name">加大 L 型</div>
+          <div class="option-desc">以一座計價</div>
+        </div>
       </div>
     </div>
 
-    <!-- 座位人數調查（僅傳統/法式顯示） -->
-    <div class="card-group" id="seatsCard">
-      <div class="group-title">2. 座位人數調查</div>
-      <div class="counter-wrapper">
-        <button class="counter-btn" id="btnMinus" type="button">−</button>
-        <div class="counter-value"><span id="seatCount">3</span> 人座</div>
-        <button class="counter-btn" id="btnPlus" type="button">+</button>
+    <!-- 人數調查 (傳統、法式才顯示) -->
+    <div class="section" id="personSection">
+      <div class="section-title">
+        <span>2. 座位人數</span>
       </div>
-      <div class="sub-hint">例：若為 1+2+3，請選 6 人</div>
+      <div class="counter-wrapper">
+        <span class="counter-label">座位總人數</span>
+        <div class="counter-controls">
+          <button class="btn-counter" id="btnMinus" type="button">−</button>
+          <span class="counter-val" id="personCountText">1</span>
+          <button class="btn-counter" id="btnPlus" type="button">+</button>
+        </div>
+      </div>
+      <div class="field-hint">例：若為 1+2+3，請選 6 人</div>
     </div>
 
     <!-- A. 需求項目 -->
-    <div class="card-group">
-      <div class="group-title"><span id="serviceStepNum">3</span>. 需求項目</div>
-      <div class="grid grid-2" id="serviceGroup">
-        <div class="option-btn active" data-service="leather">更換皮革</div>
-        <div class="option-btn" data-service="leatherFoam">更換皮革+泡棉</div>
-        <div class="option-btn" data-service="foam">更換泡棉</div>
-        <div class="option-btn" data-service="base">維修底座</div>
-        <div class="option-btn" data-service="cushion" id="cushionBtn">椅墊訂做</div>
+    <div class="section">
+      <div class="section-title">
+        <span id="serviceTitle">3. 需求項目</span>
+      </div>
+      <div class="grid grid-2" id="serviceGrid">
+        <div class="option-card active" data-service="leather_only">
+          <div class="option-name">更換皮革</div>
+        </div>
+        <div class="option-card" data-service="leather_foam">
+          <div class="option-name">更換皮革+泡棉</div>
+        </div>
+        <div class="option-card" data-service="foam_only">
+          <div class="option-name">更換泡棉</div>
+        </div>
+        <div class="option-card" data-service="base_repair">
+          <div class="option-name">維修底座</div>
+        </div>
+        <div class="option-card" data-service="cushion_custom" id="cardCushion">
+          <div class="option-name">椅墊訂做</div>
+          <div class="option-desc" id="cushionNotice" style="display: none; color: #dc2626;">L型不適用</div>
+        </div>
       </div>
     </div>
 
-    <!-- B. 皮革選擇（更換泡棉、維修底座時隱藏） -->
-    <div class="card-group" id="leatherCard">
-      <div class="group-title"><span id="leatherStepNum">4</span>. 皮革/布料選擇</div>
-      <div class="grid grid-2" id="leatherGroup">
-        <div class="option-btn active" data-leather="latex">透氣乳膠皮 (合成)</div>
-        <div class="option-btn" data-leather="catLeather">貓抓皮</div>
-        <div class="option-btn" data-leather="catFabric">貓抓布</div>
-        <div class="option-btn" data-leather="realLeather">真皮</div>
+    <!-- B. 皮革選擇 (選更換泡棉、維修底座時隱藏) -->
+    <div class="section" id="leatherSection">
+      <div class="section-title">4. 面料材質</div>
+      <div class="grid grid-2" id="leatherGrid">
+        <div class="option-card active" data-leather="latex">
+          <div class="option-name">透氣乳膠皮</div>
+          <div class="option-desc">合成皮</div>
+        </div>
+        <div class="option-card" data-leather="cat_leather">
+          <div class="option-name">貓抓皮</div>
+          <div class="option-desc">耐刮耐磨</div>
+        </div>
+        <div class="option-card" data-leather="cat_fabric">
+          <div class="option-name">貓抓布</div>
+          <div class="option-desc">親膚抗刮</div>
+        </div>
+        <div class="option-card" data-leather="genuine">
+          <div class="option-name">真皮</div>
+          <div class="option-desc">天然質感</div>
+        </div>
       </div>
     </div>
 
-    <div class="disclaimer">
+    <div class="disclaimer-box">
       以上報價僅供參考，實際價格仍以現場評估與報價為主
     </div>
   </div>
 
-  <!-- 底部固定結算列 -->
+  <!-- 底部固定結算欄 -->
   <div class="bottom-bar">
     <div class="bottom-content">
-      <div class="price-row">
-        <span class="price-label">預估總額 (含運費及評估基準)</span>
-        <span class="price-value" id="totalPrice">NT$ 0</span>
+      <div class="price-container">
+        <div class="price-main-row">
+          <span class="price-label">預估總額</span>
+          <span class="price-value" id="totalPrice">NT$ 0</span>
+        </div>
+        <div class="shipping-warning" id="shippingNotice">
+          (金額未滿 NT10,000，需負擔來回運費3,000)
+        </div>
       </div>
-      <button class="btn-submit" id="btnLine">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+      <button class="btn-line" id="btnLine" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M22 10.3c0-4.6-4.5-8.3-10-8.3S2 5.7 2 10.3c0 4.1 3.6 7.6 8.5 8.2.3.1.8.2.9.6.1.3.1.8 0 1.2l-.3 1.6c-.1.5-.2.8.2.6.4-.3 2.5-1.5 3.4-2.1.5-.3 1-.5 1.5-.5 3.6 0 5.8-3.4 5.8-5.7z"/>
         </svg>
-        複製規格並前往 LINE 洽詢
+        有興趣歡迎截圖需求後加 Line 討論！
       </button>
     </div>
   </div>
 
   <script>
-    const LINE_URL = "https://line.me/ti/p/iU1C5H11FF";
+    const LINE_URL = "https://line.me/ti/p/KcEKtSwLcM";
 
-    // 價格表資料庫
-    const PRICE_DATA = {
+    // 價格矩陣參照 (工錢, 皮革, 泡棉, 底座, 椅墊)
+    const PRICING = {
       traditional: {
-        labor: 2000,
-        leather: { latex: 5000, catLeather: 5000, catFabric: 6000, realLeather: 8000 },
-        foam: 1500,
-        base: 3000,
-        cushion: { latex: 3800, catLeather: 3800, catFabric: 4200, realLeather: 5000 }
+        latex:       { labor: 2000, leather: 5000, foam: 1500, base: 3000, cushion: 3800 },
+        cat_leather: { labor: 2000, leather: 5000, foam: 1500, base: 3000, cushion: 3800 },
+        cat_fabric:  { labor: 2000, leather: 6000, foam: 1500, base: 3000, cushion: 4200 },
+        genuine:     { labor: 2000, leather: 8000, foam: 1500, base: 3000, cushion: 5000 }
       },
       french: {
-        labor: 2000,
-        leather: { latex: 6000, catLeather: 6000, catFabric: 8000, realLeather: 9000 },
-        foam: 1500,
-        base: 3000,
-        cushion: { latex: 3800, catLeather: 3800, catFabric: 4200, realLeather: 5000 }
+        latex:       { labor: 2000, leather: 6000, foam: 1500, base: 3000, cushion: 3800 },
+        cat_leather: { labor: 2000, leather: 6000, foam: 1500, base: 3000, cushion: 3800 },
+        cat_fabric:  { labor: 2000, leather: 8000, foam: 1500, base: 3000, cushion: 4200 },
+        genuine:     { labor: 2000, leather: 9000, foam: 1500, base: 3000, cushion: 5000 }
       },
-      standardL: {
-        labor: 13000,
-        leather: { latex: 19000, catLeather: 19000, catFabric: 22000, realLeather: 33000 },
-        foam: 3000,
-        base: 12000,
-        cushion: null
+      std_l: {
+        latex:       { labor: 13000, leather: 19000, foam: 3000, base: 12000, cushion: null },
+        cat_leather: { labor: 13000, leather: 19000, foam: 3000, base: 12000, cushion: null },
+        cat_fabric:  { labor: 13000, leather: 22000, foam: 3000, base: 12000, cushion: null },
+        genuine:     { labor: 13000, leather: 33000, foam: 3000, base: 12000, cushion: null }
       },
-      largeL: {
-        labor: 17000,
-        leather: { latex: 20000, catLeather: 20000, catFabric: 25000, realLeather: 39000 },
-        foam: 3000,
-        base: 14000,
-        cushion: null
+      large_l: {
+        latex:       { labor: 17000, leather: 20000, foam: 3000, base: 14000, cushion: null },
+        cat_leather: { labor: 17000, leather: 20000, foam: 3000, base: 14000, cushion: null },
+        cat_fabric:  { labor: 17000, leather: 25000, foam: 3000, base: 14000, cushion: null },
+        genuine:     { labor: 17000, leather: 39000, foam: 3000, base: 14000, cushion: null }
       }
     };
 
-    // 目前選取狀態
+    const NAMES = {
+      types: { traditional: "傳統沙發", french: "法式沙發", std_l: "標準 L 型", large_l: "加大 L 型" },
+      services: {
+        leather_only: "更換皮革",
+        leather_foam: "更換皮革+泡棉",
+        foam_only: "更換泡棉",
+        base_repair: "維修底座",
+        cushion_custom: "椅墊訂做"
+      },
+      leathers: { latex: "透氣乳膠皮", cat_leather: "貓抓皮", cat_fabric: "貓抓布", genuine: "真皮" }
+    };
+
+    // 狀態
     let state = {
       type: 'traditional',
-      seats: 3,
-      service: 'leather',
+      persons: 1,
+      service: 'leather_only',
       leather: 'latex'
     };
 
     // DOM 元素
-    const seatsCard = document.getElementById('seatsCard');
-    const leatherCard = document.getElementById('leatherCard');
-    const cushionBtn = document.getElementById('cushionBtn');
-    const seatCountEl = document.getElementById('seatCount');
+    const personSection = document.getElementById('personSection');
+    const personCountText = document.getElementById('personCountText');
     const btnMinus = document.getElementById('btnMinus');
     const btnPlus = document.getElementById('btnPlus');
+    const leatherSection = document.getElementById('leatherSection');
+    const cardCushion = document.getElementById('cardCushion');
+    const cushionNotice = document.getElementById('cushionNotice');
     const totalPriceEl = document.getElementById('totalPrice');
+    const shippingNotice = document.getElementById('shippingNotice');
     const btnLine = document.getElementById('btnLine');
     const toast = document.getElementById('toast');
-    const serviceStepNum = document.getElementById('serviceStepNum');
-    const leatherStepNum = document.getElementById('leatherStepNum');
 
-    // 判斷是否為 L 型
-    function isLType() {
-      return state.type === 'standardL' || state.type === 'largeL';
-    }
+    // 切換沙發類型
+    document.querySelectorAll('#sofaTypeGrid .option-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('#sofaTypeGrid .option-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        state.type = card.dataset.type;
 
-    // 判斷是否需要皮革選項
-    function needsLeather() {
-      return state.service !== 'foam' && state.service !== 'base';
-    }
-
-    // 更新介面狀態（顯示/隱藏與可用性）
-    function updateUIState() {
-      const isL = isLType();
-
-      // 1. 人數區塊
-      if (isL) {
-        seatsCard.style.display = 'none';
-        serviceStepNum.textContent = '2';
-      } else {
-        seatsCard.style.display = 'block';
-        serviceStepNum.textContent = '3';
-      }
-
-      // 2. 椅墊訂做選項（L 型沒有）
-      if (isL) {
-        cushionBtn.style.display = 'none';
-        if (state.service === 'cushion') {
-          state.service = 'leather';
-          document.querySelectorAll('#serviceGroup .option-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.service === 'leather');
-          });
-        }
-      } else {
-        cushionBtn.style.display = 'flex';
-      }
-
-      // 3. 皮革區塊（更換泡棉、維修底座無須選擇）
-      if (!needsLeather()) {
-        leatherCard.style.display = 'none';
-      } else {
-        leatherCard.style.display = 'block';
-        leatherStepNum.textContent = isL ? '3' : '4';
-      }
-
-      // 4. 人數加減按鈕限制 (1~8人)
-      btnMinus.disabled = state.seats <= 1;
-      btnPlus.disabled = state.seats >= 8;
-      seatCountEl.textContent = state.seats;
-    }
-
-    // 計算價格公式
-    function calculatePrice() {
-      const p = PRICE_DATA[state.type];
-      const isL = isLType();
-      const n = isL ? 1 : state.seats; // L 型以 1 座為單位
-      let calculated = 0;
-
-      const labor = p.labor;
-      const leather = p.leather ? p.leather[state.leather] : 0;
-      const foam = p.foam;
-      const base = p.base;
-      const cushion = p.cushion ? p.cushion[state.leather] : 0;
-
-      switch(state.service) {
-        case 'leather':
-          // 更換皮革 = 人數 * (工錢 + 皮革)
-          // 若為 L 型，人數為 1 即為 工錢 + 皮革
-          calculated = n * (labor + leather);
-          break;
-
-        case 'leatherFoam':
-          // 更換皮革+泡棉 = 工錢 + 人數 * (皮革 + 泡棉)
-          // 若為 L 型，人數為 1 即為 工錢 + 皮革 + 泡棉
-          calculated = labor + (n * (leather + foam));
-          break;
-
-        case 'foam':
-          // 更換泡棉 = 人數 * (工錢 + 泡棉)
-          calculated = n * (labor + foam);
-          break;
-
-        case 'base':
-          // 維修底座 = 人數 * 底座
-          calculated = n * base;
-          break;
-
-        case 'cushion':
-          // 椅墊訂做 = 人數 * 椅墊
-          calculated = n * cushion;
-          break;
-      }
-
-      // 預估總額請都 + 1000
-      const total = calculated + 1000;
-      totalPriceEl.textContent = `NT$ ${total.toLocaleString()}`;
-    }
-
-    // 重新運算與渲染
-    function refresh() {
-      updateUIState();
-      calculatePrice();
-    }
-
-    // 事件監聽：沙發類型
-    document.querySelectorAll('#typeGroup .option-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#typeGroup .option-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.type = btn.dataset.type;
-        refresh();
+        handleTypeChange();
+        calculate();
       });
     });
 
-    // 事件監聽：需求項目
-    document.querySelectorAll('#serviceGroup .option-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#serviceGroup .option-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.service = btn.dataset.service;
-        refresh();
-      });
-    });
-
-    // 事件監聽：皮革選擇
-    document.querySelectorAll('#leatherGroup .option-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#leatherGroup .option-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.leather = btn.dataset.leather;
-        refresh();
-      });
-    });
-
-    // 事件監聽：人數加減
+    // 人數增減 (1~8)
     btnMinus.addEventListener('click', () => {
-      if (state.seats > 1) {
-        state.seats--;
-        refresh();
+      if (state.persons > 1) {
+        state.persons--;
+        updateCounter();
+        calculate();
       }
     });
 
     btnPlus.addEventListener('click', () => {
-      if (state.seats < 8) {
-        state.seats++;
-        refresh();
+      if (state.persons < 8) {
+        state.persons++;
+        updateCounter();
+        calculate();
       }
     });
 
-    // 取得選取摘要文字
-    function getSummaryText() {
-      const typeText = document.querySelector('#typeGroup .active').textContent.trim();
-      const serviceText = document.querySelector('#serviceGroup .active').textContent.trim();
-      const leatherText = needsLeather() ? document.querySelector('#leatherGroup .active').textContent.trim() : '無須選擇';
-      const seatText = isLType() ? '一座 (整組)' : `${state.seats} 人座`;
-      const priceText = totalPriceEl.textContent.trim();
-
-      return `【沙發翻新維修試算需求】
-・沙發類型：${typeText}
-・座位規格：${seatText}
-・需求項目：${serviceText}
-・皮布材質：${leatherText}
-・預估總額：${priceText}
-
-您好，我想進一步諮詢以上項目的維修細節與預約評估！`;
+    function updateCounter() {
+      personCountText.textContent = state.persons;
+      btnMinus.disabled = state.persons <= 1;
+      btnPlus.disabled = state.persons >= 8;
     }
 
-    // 複製至剪貼簿
+    // 需求項目選擇
+    document.querySelectorAll('#serviceGrid .option-card').forEach(card => {
+      card.addEventListener('click', () => {
+        if (card.classList.contains('disabled')) return;
+        document.querySelectorAll('#serviceGrid .option-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        state.service = card.dataset.service;
+
+        handleServiceChange();
+        calculate();
+      });
+    });
+
+    // 皮革選擇
+    document.querySelectorAll('#leatherGrid .option-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('#leatherGrid .option-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        state.leather = card.dataset.leather;
+        calculate();
+      });
+    });
+
+    // 處理型態變化邏輯 (L型 vs 人數型)
+    function handleTypeChange() {
+      const isLType = (state.type === 'std_l' || state.type === 'large_l');
+
+      if (isLType) {
+        personSection.classList.add('hidden');
+        cardCushion.classList.add('disabled');
+        cushionNotice.style.display = 'block';
+
+        if (state.service === 'cushion_custom') {
+          // 若原本選到椅墊訂做，自動切換至更換皮革
+          state.service = 'leather_only';
+          document.querySelectorAll('#serviceGrid .option-card').forEach(c => c.classList.remove('active'));
+          document.querySelector('[data-service="leather_only"]').classList.add('active');
+          handleServiceChange();
+        }
+      } else {
+        personSection.classList.remove('hidden');
+        cardCushion.classList.remove('disabled');
+        cushionNotice.style.display = 'none';
+      }
+    }
+
+    // 處理需求項目變化邏輯 (是否需選皮革)
+    function handleServiceChange() {
+      if (state.service === 'foam_only' || state.service === 'base_repair') {
+        leatherSection.classList.add('hidden');
+      } else {
+        leatherSection.classList.remove('hidden');
+      }
+    }
+
+    // 核心計價
+    function calculate() {
+      const isLType = (state.type === 'std_l' || state.type === 'large_l');
+      const p = isLType ? 1 : state.persons; // L型以一座為單位(人數乘數為1)
+      const table = PRICING[state.type][state.leather];
+
+      let total = 0;
+
+      switch (state.service) {
+        case 'leather_only':
+          // 人數 * (工錢 + 皮革)
+          total = p * (table.labor + table.leather);
+          break;
+        case 'leather_foam':
+          // (工錢 + 皮革) + 人數 * 泡棉
+          // 註：針對 L 型 (p=1)，公式與傳統型規則一致對應
+          total = (p * (table.labor + table.leather)) + (p * table.foam);
+          break;
+        case 'foam_only':
+          // 人數 * (工錢 + 泡棉)
+          total = p * (table.labor + table.foam);
+          break;
+        case 'base_repair':
+          // 人數 * 底座
+          total = p * table.base;
+          break;
+        case 'cushion_custom':
+          // 人數 * 椅墊
+          if (table.cushion) {
+            total = p * table.cushion;
+          }
+          break;
+      }
+
+      totalPriceEl.textContent = `NT$ ${total.toLocaleString()}`;
+
+      // 運費提醒：未滿 10,000 元需提示
+      if (total < 10000) {
+        shippingNotice.style.display = 'block';
+      } else {
+        shippingNotice.style.display = 'none';
+      }
+
+      return total;
+    }
+
+    // 產生分享文字
+    function generateSummary() {
+      const isLType = (state.type === 'std_l' || state.type === 'large_l');
+      const typeText = NAMES.types[state.type];
+      const personText = isLType ? '一座' : `${state.persons} 人座`;
+      const serviceText = NAMES.services[state.service];
+      const leatherText = (state.service === 'foam_only' || state.service === 'base_repair') 
+                          ? '無須選擇' 
+                          : NAMES.leathers[state.leather];
+      const priceText = totalPriceEl.textContent;
+      const totalNum = parseInt(priceText.replace(/[^0-9]/g, ''), 10);
+      const shippingText = totalNum < 10000 ? '\n（*金額未滿 NT10,000，需另計來回運費 NT$ 3,000）' : '';
+
+      return `【沙發翻新維修估價需求】\n・沙發型態：${typeText}（${personText}）\n・需求項目：${serviceText}\n・材質選配：${leatherText}\n・預估總額：${priceText}${shippingText}\n\n您好，我已完成線上試算，想截圖並進一步討論沙發翻新細節！`;
+    }
+
+    // 複製文字
     async function copyToClipboard(text) {
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(text);
@@ -569,23 +662,27 @@
       }
     }
 
-    // 點擊前往 LINE
+    // 點擊 LINE 按鈕
     btnLine.addEventListener('click', async () => {
-      const text = getSummaryText();
+      const summary = generateSummary();
+
       try {
-        await copyToClipboard(text);
+        await copyToClipboard(summary);
         toast.classList.add('show');
         setTimeout(() => {
           toast.classList.remove('show');
           window.location.href = LINE_URL;
-        }, 1000);
-      } catch (e) {
+        }, 700);
+      } catch (err) {
         window.location.href = LINE_URL;
       }
     });
 
-    // 初始載入運算
-    refresh();
+    // 初始化狀態與畫面
+    updateCounter();
+    handleTypeChange();
+    handleServiceChange();
+    calculate();
   </script>
 </body>
 </html>
