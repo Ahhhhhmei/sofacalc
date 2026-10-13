@@ -8,6 +8,8 @@
     :root {
       --primary: #1e293b;
       --accent: #2563eb;
+      --discount-orange: #ea580c;
+      --discount-bg: #fff7ed;
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #e2e8f0;
@@ -27,7 +29,7 @@
     body {
       background-color: var(--bg);
       color: var(--text-main);
-      padding: 24px 16px 140px;
+      padding: 24px 16px 150px;
       display: flex;
       justify-content: center;
     }
@@ -55,7 +57,7 @@
     }
 
     .section {
-      margin-bottom: 22px;
+      margin-bottom: 20px;
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -95,10 +97,6 @@
       grid-template-columns: repeat(2, 1fr);
     }
 
-    .grid-3 {
-      grid-template-columns: repeat(3, 1fr);
-    }
-
     .option-btn {
       background: #ffffff;
       border: 1.5px solid var(--border);
@@ -128,7 +126,7 @@
     }
 
     .option-btn.disabled {
-      opacity: 0.4;
+      opacity: 0.35;
       pointer-events: none;
       background: #f1f5f9;
       border-color: #e2e8f0;
@@ -190,6 +188,21 @@
       border-top: 1px dashed var(--border);
     }
 
+    /* 優惠提示徽章 */
+    .discount-banner {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background-color: var(--discount-bg);
+      border: 1px solid #fed7aa;
+      color: var(--discount-orange);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.825rem;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
     .disclaimer {
       font-size: 0.8rem;
       color: var(--text-muted);
@@ -205,7 +218,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: rgba(255, 255, 255, 0.94);
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-top: 1px solid var(--border);
@@ -227,8 +240,7 @@
     .price-row {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
-      flex-wrap: wrap;
+      align-items: flex-end;
     }
 
     .price-header {
@@ -249,10 +261,39 @@
       margin-top: 2px;
     }
 
+    .price-display-group {
+      text-align: right;
+    }
+
+    .original-price {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-decoration: line-through;
+      margin-bottom: 2px;
+      display: none;
+    }
+
+    .discount-tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      background: var(--discount-orange);
+      color: white;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
     .price-value {
       font-size: 1.6rem;
       font-weight: 800;
       color: #0f172a;
+      line-height: 1.1;
+    }
+
+    .price-value.discounted {
+      color: var(--discount-orange);
     }
 
     .btn-submit {
@@ -357,6 +398,9 @@
         </div>
       </div>
       <div class="counter-hint">例：若為1+2+3，請選6人</div>
+      <div class="discount-banner" id="discountBanner">
+        🎉 <span id="discountBannerText">符合折扣優惠</span>
+      </div>
     </div>
 
     <div class="disclaimer">
@@ -372,7 +416,12 @@
           <span class="price-label">預估總額</span>
           <span class="shipping-note" id="shippingNote" style="display: none;">(金額未滿 NT10,000，需負擔來回運費3,000)</span>
         </div>
-        <span class="price-value" id="totalPrice">NT$ 0</span>
+        <div class="price-display-group">
+          <div class="original-price" id="originalPriceEl">
+            <span class="discount-tag" id="discountTag">9折</span>原價 NT$ 0
+          </div>
+          <div class="price-value" id="totalPrice">NT$ 0</div>
+        </div>
       </div>
       <button class="btn-submit" id="btnLine">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -422,6 +471,14 @@
       people: 3
     };
 
+    // 儲存當前計算結算資訊
+    let currentCalculation = {
+      originalTotal: 0,
+      finalTotal: 0,
+      discountRate: 1,
+      discountText: ''
+    };
+
     // DOM 元素
     const sofaTypeBtns = document.querySelectorAll('#sofaTypeGroup .option-btn');
     const serviceBtns = document.querySelectorAll('#serviceGroup .option-btn');
@@ -432,7 +489,11 @@
     const peopleCountEl = document.getElementById('peopleCount');
     const btnMinus = document.getElementById('btnMinus');
     const btnPlus = document.getElementById('btnPlus');
+    const discountBanner = document.getElementById('discountBanner');
+    const discountBannerText = document.getElementById('discountBannerText');
     const totalPriceEl = document.getElementById('totalPrice');
+    const originalPriceEl = document.getElementById('originalPriceEl');
+    const discountTag = document.getElementById('discountTag');
     const shippingNoteEl = document.getElementById('shippingNote');
     const btnLine = document.getElementById('btnLine');
     const toast = document.getElementById('toast');
@@ -482,7 +543,35 @@
       }
     }
 
-    // 計算價格
+    // 折扣計算邏輯
+    function getDiscountRate() {
+      const isLType = (state.sofaType === 'standard_l' || state.sofaType === 'large_l');
+      if (isLType) {
+        return { rate: 1, text: '', tag: '' };
+      }
+
+      // 換皮革折扣：2人 9折，3~8人 85折
+      if (state.service === 'leather_only') {
+        if (state.people === 2) {
+          return { rate: 0.9, text: '更換皮革滿 2 人享 9 折優惠！', tag: '9折' };
+        } else if (state.people >= 3) {
+          return { rate: 0.85, text: `更換皮革滿 ${state.people} 人享 85 折優惠！`, tag: '85折' };
+        }
+      }
+
+      // 換皮革+泡棉折扣：2人 9折，3~8人 82折
+      if (state.service === 'leather_foam') {
+        if (state.people === 2) {
+          return { rate: 0.9, text: '更換皮革+泡棉滿 2 人享 9 折優惠！', tag: '9折' };
+        } else if (state.people >= 3) {
+          return { rate: 0.82, text: `更換皮革+泡棉滿 ${state.people} 人享 82 折優惠！`, tag: '82折' };
+        }
+      }
+
+      return { rate: 1, text: '', tag: '' };
+    }
+
+    // 計算價格主函式
     function calculatePrice() {
       applyRules();
 
@@ -515,20 +604,45 @@
           break;
       }
 
-      const total = singlePrice * multiplier;
+      const originalTotal = singlePrice * multiplier;
+      const discount = getDiscountRate();
+      const finalTotal = Math.round(originalTotal * discount.rate);
 
-      // 呈現金額
-      totalPriceEl.textContent = `NT$ ${total.toLocaleString()}`;
+      currentCalculation = {
+        originalTotal,
+        finalTotal,
+        discountRate: discount.rate,
+        discountText: discount.text,
+        discountTag: discount.tag
+      };
 
-      // 金額未滿 10,000 提醒
-      if (total < 10000 && total > 0) {
+      // 介面更新：折扣條
+      if (discount.rate < 1) {
+        discountBanner.style.display = 'flex';
+        discountBannerText.textContent = discount.text;
+        
+        originalPriceEl.style.display = 'block';
+        discountTag.textContent = discount.tag;
+        originalPriceEl.innerHTML = `<span class="discount-tag">${discount.tag}</span>原價 NT$ ${originalTotal.toLocaleString()}`;
+        
+        totalPriceEl.textContent = `NT$ ${finalTotal.toLocaleString()}`;
+        totalPriceEl.classList.add('discounted');
+      } else {
+        discountBanner.style.display = 'none';
+        originalPriceEl.style.display = 'none';
+        totalPriceEl.textContent = `NT$ ${finalTotal.toLocaleString()}`;
+        totalPriceEl.classList.remove('discounted');
+      }
+
+      // 金額未滿 10,000 提醒 (以最終優惠金額判定)
+      if (finalTotal < 10000 && finalTotal > 0) {
         shippingNoteEl.style.display = 'inline';
       } else {
         shippingNoteEl.style.display = 'none';
       }
     }
 
-    // 人數增減
+    // 人數增減控制
     function updateCounterButtons() {
       peopleCountEl.textContent = state.people;
       btnMinus.disabled = (state.people <= 1);
@@ -551,7 +665,7 @@
       }
     });
 
-    // 取得當前文字規格摘要
+    // 產生 LINE 需求文字
     function getSummaryText() {
       const sofaText = document.querySelector('#sofaTypeGroup .option-btn.active').textContent.trim();
       const serviceText = document.querySelector('#serviceGroup .option-btn.active').textContent.trim();
@@ -567,9 +681,17 @@
         summary += `・皮革選擇：${leatherText}\n`;
       }
       summary += `・數量規格：${quantityText}\n`;
-      summary += `・預估總額：${totalPriceEl.textContent}\n`;
+
+      if (currentCalculation.discountRate < 1) {
+        summary += `・原價金額：NT$ ${currentCalculation.originalTotal.toLocaleString()}\n`;
+        summary += `・優惠折扣：${currentCalculation.discountTag}（${currentCalculation.discountText}）\n`;
+        summary += `・預估總額：NT$ ${currentCalculation.finalTotal.toLocaleString()}\n`;
+      } else {
+        summary += `・預估總額：NT$ ${currentCalculation.finalTotal.toLocaleString()}\n`;
+      }
+
       if (shippingNoteEl.style.display !== 'none') {
-        summary += `・備註說明：金額未滿 NT$10,000，需另計來回運費 NT$3,000\n`;
+        summary += `・運費提醒：預估金額未滿 NT$10,000，需另計來回運費 NT$3,000\n`;
       }
       summary += `\n您好！我已在網頁完成試算，想截圖與您進一步評估細節！`;
 
