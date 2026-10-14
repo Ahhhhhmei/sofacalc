@@ -344,7 +344,7 @@
 </head>
 <body>
 
-  <div id="toast" class="toast">規格已複製，即將為您開啟 LINE！</div>
+  <div id="toast" class="toast">即將為您開啟Line！</div>
 
   <div class="container">
     <header>
@@ -665,69 +665,13 @@
       }
     });
 
-    // 產生 LINE 需求文字
-    function getSummaryText() {
-      const sofaText = document.querySelector('#sofaTypeGroup .option-btn.active').textContent.trim();
-      const serviceText = document.querySelector('#serviceGroup .option-btn.active').textContent.trim();
-      const isLType = (state.sofaType === 'standard_l' || state.sofaType === 'large_l');
-      const needsLeather = !(state.service === 'foam_only' || state.service === 'base_only');
-      const leatherText = needsLeather ? document.querySelector('#leatherTypeGroup .option-btn.active').textContent.trim() : '不適用';
-      const quantityText = isLType ? '一座' : `${state.people} 人座`;
-
-      let summary = `【沙發維修翻新評估需求】\n`;
-      summary += `・沙發類型：${sofaText}\n`;
-      summary += `・需求項目：${serviceText}\n`;
-      if (needsLeather) {
-        summary += `・皮革選擇：${leatherText}\n`;
-      }
-      summary += `・數量規格：${quantityText}\n`;
-
-      if (currentCalculation.discountRate < 1) {
-        summary += `・原價金額：NT$ ${currentCalculation.originalTotal.toLocaleString()}\n`;
-        summary += `・優惠折扣：${currentCalculation.discountTag}（${currentCalculation.discountText}）\n`;
-        summary += `・預估總額：NT$ ${currentCalculation.finalTotal.toLocaleString()}\n`;
-      } else {
-        summary += `・預估總額：NT$ ${currentCalculation.finalTotal.toLocaleString()}\n`;
-      }
-
-      if (shippingNoteEl.style.display !== 'none') {
-        summary += `・運費提醒：預估金額未滿 NT$10,000，需另計來回運費 NT$3,000\n`;
-      }
-      summary += `\n您好！我已在網頁完成試算，想截圖與您進一步評估細節！`;
-
-      return summary;
-    }
-
-    // 複製文字至剪貼簿
-    async function copyToClipboard(text) {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(text);
-      } else {
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        textArea.style.position = "fixed";
-        textArea.style.left = "-999999px";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        document.execCommand('copy');
-        textArea.remove();
-      }
-    }
-
-    // 點擊 LINE 按鈕
-    btnLine.addEventListener('click', async () => {
-      const summary = getSummaryText();
-      try {
-        await copyToClipboard(summary);
-        toast.classList.add('show');
-        setTimeout(() => {
-          toast.classList.remove('show');
-          window.location.href = LINE_URL;
-        }, 900);
-      } catch (e) {
+    // 點擊 LINE 按鈕：顯示 Toast 提示後直接跳轉至個人 LINE
+    btnLine.addEventListener('click', () => {
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
         window.location.href = LINE_URL;
-      }
+      }, 700);
     });
 
     // 初始化事件監聽
