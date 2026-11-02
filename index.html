@@ -353,6 +353,44 @@
     .toast.show {
       transform: translateX(-50%) translateY(0);
     }
+    
+    /* 頂層主模式切換 (訂製 / 維修) */
+    .mode-switcher {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      background: #e2e8f0;
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .mode-tab {
+      padding: 10px 14px;
+      text-align: center;
+      border-radius: 9px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .mode-tab.active {
+      background: #ffffff;
+      color: var(--text-main);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    /* 頁尾版權宣告 */
+    .copyright {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 20px;
+      letter-spacing: 0.02em;
+    }
   </style>
 </head>
 <body>
@@ -361,66 +399,148 @@
 
   <div class="container">
     <header>
-      <h1>沙發翻新與維修試算</h1>
+      <h1>合富沙發估價小工具</h1>
       <p>點選項目即時估價，規格透明快速試算</p>
     </header>
 
-    <!-- 步驟 1：沙發類型 -->
-    <div class="section">
-      <div class="section-title"><span class="badge">1</span> 沙發類型</div>
-      <div class="grid grid-2" id="sofaTypeGroup">
-        <div class="option-btn active" data-value="traditional">傳統沙發</div>
-        <div class="option-btn" data-value="french">法式沙發</div>
-        <div class="option-btn" data-value="standard_l">標準 L 型</div>
-        <div class="option-btn" data-value="large_l">加大 L 型</div>
-      </div>
+    <!-- 頂層模式選擇：維修翻新 / 客製訂做 -->
+    <div class="mode-switcher" id="mainModeGroup">
+      <div class="mode-tab active" data-mode="repair">沙發維修翻新</div>
+      <div class="mode-tab" data-mode="custom">客製訂做沙發</div>
     </div>
 
-    <!-- 步驟 2：需求項目 -->
-    <div class="section">
-      <div class="section-title"><span class="badge">2</span> 需求項目</div>
-      <div class="grid grid-2" id="serviceGroup">
-        <div class="option-btn active" data-value="leather_only">更換皮革</div>
-        <div class="option-btn" data-value="leather_foam">
-          <span>更換皮革+泡棉</span>
-          <span class="option-subtext">含底座補強</span>
-        </div>
-        <div class="option-btn" data-value="foam_only">更換泡棉</div>
-        <div class="option-btn" data-value="base_only">維修底座</div>
-        <div class="option-btn" data-value="cushion_only" id="btnCushion">椅墊訂做</div>
-      </div>
-    </div>
-
-    <!-- 步驟 3：皮革選擇 (動態顯示/隱藏) -->
-    <div class="section" id="leatherSection">
-      <div class="section-title"><span class="badge">3</span> 皮革選擇</div>
-      <div class="grid grid-2" id="leatherTypeGroup">
-        <div class="option-btn active" data-value="latex">透氣乳膠皮 (合成)</div>
-        <div class="option-btn" data-value="scratch_leather">貓抓皮</div>
-        <div class="option-btn" data-value="scratch_cloth">貓抓布</div>
-        <div class="option-btn" data-value="genuine">真皮</div>
-      </div>
-    </div>
-
-    <!-- 步驟 4：座位人數調查 (僅傳統/法式顯示) -->
-    <div class="section" id="peopleSection">
-      <div class="section-title"><span class="badge">4</span> 座位人數</div>
-      <div class="counter-wrapper">
-        <span style="font-weight: 600; font-size: 0.95rem;">需求人數</span>
-        <div class="counter-controls">
-          <button type="button" class="btn-step" id="btnMinus" aria-label="減少人數">-</button>
-          <span class="counter-value" id="peopleCount">3</span>
-          <button type="button" class="btn-step" id="btnPlus" aria-label="增加人數">+</button>
+    <!-- 容器 A：沙發維修翻新計算器 -->
+    <div id="repairContainer">
+      <!-- 步驟 1：沙發類型 -->
+      <div class="section">
+        <div class="section-title"><span class="badge">1</span> 沙發類型</div>
+        <div class="grid grid-2" id="sofaTypeGroup">
+          <div class="option-btn active" data-value="traditional">傳統沙發</div>
+          <div class="option-btn" data-value="french">法式沙發</div>
+          <div class="option-btn" data-value="standard_l">標準 L 型</div>
+          <div class="option-btn" data-value="large_l">加大 L 型</div>
         </div>
       </div>
-      <div class="counter-hint">例：若為1+2+3，請選6人</div>
-      <div class="discount-banner" id="discountBanner">
-        🎉 <span id="discountBannerText">符合折扣優惠</span>
+
+      <!-- 步驟 2：需求項目 -->
+      <div class="section">
+        <div class="section-title"><span class="badge">2</span> 需求項目</div>
+        <div class="grid grid-2" id="serviceGroup">
+          <div class="option-btn active" data-value="leather_only">更換皮革</div>
+          <div class="option-btn" data-value="leather_foam">
+            <span>更換皮革+泡棉</span>
+            <span class="option-subtext">含底座補強</span>
+          </div>
+          <div class="option-btn" data-value="foam_only">更換泡棉</div>
+          <div class="option-btn" data-value="base_only">維修底座</div>
+          <div class="option-btn" data-value="cushion_only" id="btnCushion">椅墊訂做</div>
+        </div>
+      </div>
+
+      <!-- 步驟 3：皮革選擇 (動態顯示/隱藏) -->
+      <div class="section" id="leatherSection">
+        <div class="section-title"><span class="badge">3</span> 皮革選擇</div>
+        <div class="grid grid-2" id="leatherTypeGroup">
+          <div class="option-btn active" data-value="latex">透氣乳膠皮 (合成)</div>
+          <div class="option-btn" data-value="scratch_leather">貓抓皮</div>
+          <div class="option-btn" data-value="scratch_cloth">貓抓布</div>
+          <div class="option-btn" data-value="genuine">真皮</div>
+        </div>
+      </div>
+
+      <!-- 步驟 4：座位人數調查 (僅傳統/法式顯示) -->
+      <div class="section" id="peopleSection">
+        <div class="section-title"><span class="badge">4</span> 座位人數</div>
+        <div class="counter-wrapper">
+          <span style="font-weight: 600; font-size: 0.95rem;">需求人數</span>
+          <div class="counter-controls">
+            <button type="button" class="btn-step" id="btnMinus" aria-label="減少人數">-</button>
+            <span class="counter-value" id="peopleCount">3</span>
+            <button type="button" class="btn-step" id="btnPlus" aria-label="增加人數">+</button>
+          </div>
+        </div>
+        <div class="counter-hint">例：若為1+2+3，請選6人</div>
+        <div class="discount-banner" id="discountBanner">
+          🎉 <span id="discountBannerText">符合折扣優惠</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 容器 B：客製訂做沙發 -->
+    <div id="customContainer" style="display: none;">
+      <!-- 訂製步驟 1：沙發類型 -->
+      <div class="section">
+        <div class="section-title"><span class="badge">1</span> 訂製沙發款式</div>
+        <div class="grid grid-3" id="customSofaTypeGroup">
+          <div class="option-btn active" data-value="traditional">傳統沙發</div>
+          <div class="option-btn" data-value="standard_l">標準 L 型</div>
+          <div class="option-btn" data-value="large_l">加大 L 型</div>
+        </div>
+      </div>
+
+      <!-- 訂製步驟 2：皮革材質 -->
+      <div class="section">
+        <div class="section-title"><span class="badge">2</span> 皮革材質選擇</div>
+        <div class="grid grid-2" id="customLeatherTypeGroup">
+          <div class="option-btn active" data-value="latex">透氣乳膠皮 (合成)</div>
+          <div class="option-btn" data-value="scratch_leather">貓抓皮</div>
+          <div class="option-btn" data-value="scratch_cloth">貓抓布</div>
+          <div class="option-btn" data-value="genuine">真皮</div>
+        </div>
+      </div>
+
+      <!-- 訂製步驟 3：傳統沙發配置數量 (各款式 0~無上限) -->
+      <div class="section" id="customQuantitySection">
+        <div class="section-title"><span class="badge">3</span> 各款式訂製數量</div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- 1人座 -->
+          <div class="counter-wrapper" style="border-bottom: 1px dashed var(--border); padding-bottom: 10px;">
+            <div>
+              <div style="font-weight: 600; font-size: 0.95rem;">1 人座</div>
+              <div class="option-subtext" id="priceTag1P">單價 NT$ 20,000</div>
+            </div>
+            <div class="counter-controls">
+              <button type="button" class="btn-step" id="btnMinus1P" aria-label="減少1人座">-</button>
+              <span class="counter-value" id="count1P">0</span>
+              <button type="button" class="btn-step" id="btnPlus1P" aria-label="增加1人座">+</button>
+            </div>
+          </div>
+
+          <!-- 2人座 -->
+          <div class="counter-wrapper" style="border-bottom: 1px dashed var(--border); padding-bottom: 10px;">
+            <div>
+              <div style="font-weight: 600; font-size: 0.95rem;">2 人座</div>
+              <div class="option-subtext" id="priceTag2P">單價 NT$ 28,000</div>
+            </div>
+            <div class="counter-controls">
+              <button type="button" class="btn-step" id="btnMinus2P" aria-label="減少2人座">-</button>
+              <span class="counter-value" id="count2P">0</span>
+              <button type="button" class="btn-step" id="btnPlus2P" aria-label="增加2人座">+</button>
+            </div>
+          </div>
+
+          <!-- 3人座 -->
+          <div class="counter-wrapper" style="padding-bottom: 4px;">
+            <div>
+              <div style="font-weight: 600; font-size: 0.95rem;">3 人座</div>
+              <div class="option-subtext" id="priceTag3P">單價 NT$ 36,000</div>
+            </div>
+            <div class="counter-controls">
+              <button type="button" class="btn-step" id="btnMinus3P" aria-label="減少3人座">-</button>
+              <span class="counter-value" id="count3P">0</span>
+              <button type="button" class="btn-step" id="btnPlus3P" aria-label="增加3人座">+</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="disclaimer">
       以上報價僅供參考，實際價格仍以現場評估與報價為主
+    </div>
+
+    <div class="copyright">
+      Copyright © 2026 合富沙發版權所有
     </div>
   </div>
 
@@ -451,7 +571,7 @@
   <script>
     const LINE_URL = "https://line.me/ti/p/KcEKtSwLcM";
 
-    // 價格表數據庫
+    // 價格表數據庫：維修翻新
     const PRICE_DATA = {
       traditional: {
         latex:           { labor: 2000, leather: 5000, foam: 1500, base: 3000, cushion: 3800 },
@@ -479,7 +599,31 @@
       }
     };
 
+    // 價格表數據庫：客製訂做沙發
+    const CUSTOM_PRICE_DATA = {
+      traditional: {
+        latex:           { p1: 20000, p2: 28000, p3: 36000 },
+        scratch_leather: { p1: 20000, p2: 28000, p3: 36000 },
+        scratch_cloth:   { p1: 20000, p2: 28000, p3: 36000 },
+        genuine:         { p1: 23000, p2: 32000, p3: 43000 }
+      },
+      standard_l: {
+        latex:           46000,
+        scratch_leather: 46000,
+        scratch_cloth:   50000,
+        genuine:         66000
+      },
+      large_l: {
+        latex:           '面議',
+        scratch_leather: '面議',
+        scratch_cloth:   '面議',
+        genuine:         '面議'
+      }
+    };
+
     // 狀態管理
+    let currentMode = 'repair'; // 'repair' | 'custom'
+
     let state = {
       sofaType: 'traditional',
       service: 'leather_only',
@@ -487,15 +631,15 @@
       people: 3
     };
 
-    // 儲存當前計算結算資訊
-    let currentCalculation = {
-      originalTotal: 0,
-      finalTotal: 0,
-      discountRate: 1,
-      discountText: ''
+    let customState = {
+      sofaType: 'traditional',
+      leatherType: 'latex',
+      count1P: 0,
+      count2P: 0,
+      count3P: 0
     };
 
-    // DOM 元素
+    // DOM 元素：維修翻新
     const sofaTypeBtns = document.querySelectorAll('#sofaTypeGroup .option-btn');
     const serviceBtns = document.querySelectorAll('#serviceGroup .option-btn');
     const leatherTypeBtns = document.querySelectorAll('#leatherTypeGroup .option-btn');
@@ -507,6 +651,25 @@
     const btnPlus = document.getElementById('btnPlus');
     const discountBanner = document.getElementById('discountBanner');
     const discountBannerText = document.getElementById('discountBannerText');
+
+    // DOM 元素：客製訂做
+    const customSofaTypeBtns = document.querySelectorAll('#customSofaTypeGroup .option-btn');
+    const customLeatherTypeBtns = document.querySelectorAll('#customLeatherTypeGroup .option-btn');
+    const customQuantitySection = document.getElementById('customQuantitySection');
+    const count1PEl = document.getElementById('count1P');
+    const count2PEl = document.getElementById('count2P');
+    const count3PEl = document.getElementById('count3P');
+    const btnMinus1P = document.getElementById('btnMinus1P');
+    const btnPlus1P = document.getElementById('btnPlus1P');
+    const btnMinus2P = document.getElementById('btnMinus2P');
+    const btnPlus2P = document.getElementById('btnPlus2P');
+    const btnMinus3P = document.getElementById('btnMinus3P');
+    const btnPlus3P = document.getElementById('btnPlus3P');
+    const priceTag1P = document.getElementById('priceTag1P');
+    const priceTag2P = document.getElementById('priceTag2P');
+    const priceTag3P = document.getElementById('priceTag3P');
+
+    // DOM 元素：共用底部結算與提示
     const totalPriceEl = document.getElementById('totalPrice');
     const originalPriceEl = document.getElementById('originalPriceEl');
     const discountTag = document.getElementById('discountTag');
@@ -514,25 +677,45 @@
     const btnLine = document.getElementById('btnLine');
     const toast = document.getElementById('toast');
 
-    // 切換按鈕組 active
-    function setupGroupClicks(buttons, stateKey, onChange) {
+    // 頂部主模式 DOM
+    const modeTabs = document.querySelectorAll('#mainModeGroup .mode-tab');
+    const repairContainer = document.getElementById('repairContainer');
+    const customContainer = document.getElementById('customContainer');
+
+    // 頂部模式切換監聽
+    modeTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        modeTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentMode = tab.dataset.mode;
+        if (currentMode === 'repair') {
+          repairContainer.style.display = 'block';
+          customContainer.style.display = 'none';
+          calculatePrice();
+        } else {
+          repairContainer.style.display = 'none';
+          customContainer.style.display = 'block';
+          calculateCustomPrice();
+        }
+      });
+    });
+
+    // 通用按鈕組點擊
+    function setupGroupClicks(buttons, callback) {
       buttons.forEach(btn => {
         btn.addEventListener('click', () => {
           if (btn.classList.contains('disabled')) return;
           buttons.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          state[stateKey] = btn.getAttribute('data-value');
-          if (onChange) onChange();
-          calculatePrice();
+          callback(btn.getAttribute('data-value'));
         });
       });
     }
 
-    // 規則檢查與聯動
+    // ----------------- 維修翻新邏輯 -----------------
     function applyRules() {
       const isLType = (state.sofaType === 'standard_l' || state.sofaType === 'large_l');
 
-      // 規則 1：標準 L 型與加大 L 型沒有「椅墊訂做」選項
       if (isLType) {
         btnCushion.classList.add('disabled');
         if (state.service === 'cushion_only') {
@@ -544,14 +727,8 @@
         btnCushion.classList.remove('disabled');
       }
 
-      // 規則 2：L型以一座為單位，不需人數；傳統/法式才有人數選項
-      if (isLType) {
-        peopleSection.style.display = 'none';
-      } else {
-        peopleSection.style.display = 'block';
-      }
+      peopleSection.style.display = isLType ? 'none' : 'block';
 
-      // 規則 3：若項目選擇「更換泡棉」或「維修底座」，則無需選擇皮革
       if (state.service === 'foam_only' || state.service === 'base_only') {
         leatherSection.style.display = 'none';
       } else {
@@ -559,36 +736,25 @@
       }
     }
 
-    // 折扣計算邏輯
     function getDiscountRate() {
       const isLType = (state.sofaType === 'standard_l' || state.sofaType === 'large_l');
-      if (isLType) {
-        return { rate: 1, text: '', tag: '' };
-      }
+      if (isLType) return { rate: 1, text: '', tag: '' };
 
-      // 換皮革折扣：2人 9折，3~8人 85折
       if (state.service === 'leather_only') {
-        if (state.people === 2) {
-          return { rate: 0.9, text: '更換皮革滿 2 人享 9 折優惠！', tag: '9折' };
-        } else if (state.people >= 3) {
-          return { rate: 0.85, text: `更換皮革滿 ${state.people} 人享 85 折優惠！`, tag: '85折' };
-        }
+        if (state.people === 2) return { rate: 0.9, text: '更換皮革滿 2 人享 9 折優惠！', tag: '9折' };
+        if (state.people >= 3) return { rate: 0.85, text: `更換皮革滿 ${state.people} 人享 85 折優惠！`, tag: '85折' };
       }
 
-      // 換皮革+泡棉折扣：2人 9折，3~8人 82折
       if (state.service === 'leather_foam') {
-        if (state.people === 2) {
-          return { rate: 0.9, text: '更換皮革+泡棉滿 2 人享 9 折優惠！', tag: '9折' };
-        } else if (state.people >= 3) {
-          return { rate: 0.82, text: `更換皮革+泡棉滿 ${state.people} 人享 82 折優惠！`, tag: '82折' };
-        }
+        if (state.people === 2) return { rate: 0.9, text: '更換皮革+泡棉滿 2 人享 9 折優惠！', tag: '9折' };
+        if (state.people >= 3) return { rate: 0.82, text: `更換皮革+泡棉滿 ${state.people} 人享 82 折優惠！`, tag: '82折' };
       }
 
       return { rate: 1, text: '', tag: '' };
     }
 
-    // 計算價格主函式
     function calculatePrice() {
+      if (currentMode !== 'repair') return;
       applyRules();
 
       const rates = PRICE_DATA[state.sofaType][state.leatherType];
@@ -596,26 +762,20 @@
       const multiplier = isLType ? 1 : state.people;
 
       let singlePrice = 0;
-
       switch(state.service) {
         case 'leather_only':
-          // 人數 * (工錢 + 皮革)
           singlePrice = rates.labor + rates.leather;
           break;
         case 'leather_foam':
-          // 人數 * (工錢 + 皮革 + 泡棉)
           singlePrice = rates.labor + rates.leather + rates.foam;
           break;
         case 'foam_only':
-          // 人數 * (工錢 + 泡棉)
           singlePrice = rates.labor + rates.foam;
           break;
         case 'base_only':
-          // 人數 * 底座
           singlePrice = rates.base;
           break;
         case 'cushion_only':
-          // 人數 * 椅墊
           singlePrice = rates.cushion;
           break;
       }
@@ -624,23 +784,12 @@
       const discount = getDiscountRate();
       const finalTotal = Math.round(originalTotal * discount.rate);
 
-      currentCalculation = {
-        originalTotal,
-        finalTotal,
-        discountRate: discount.rate,
-        discountText: discount.text,
-        discountTag: discount.tag
-      };
-
-      // 介面更新：折扣條
       if (discount.rate < 1) {
         discountBanner.style.display = 'flex';
         discountBannerText.textContent = discount.text;
-        
         originalPriceEl.style.display = 'block';
         discountTag.textContent = discount.tag;
         originalPriceEl.innerHTML = `<span class="discount-tag">${discount.tag}</span>原價 NT$ ${originalTotal.toLocaleString()}`;
-        
         totalPriceEl.textContent = `NT$ ${finalTotal.toLocaleString()}`;
         totalPriceEl.classList.add('discounted');
       } else {
@@ -650,7 +799,6 @@
         totalPriceEl.classList.remove('discounted');
       }
 
-      // 金額未滿 10,000 提醒 (以最終優惠金額判定)
       if (finalTotal < 10000 && finalTotal > 0) {
         shippingNoteEl.style.display = 'inline';
       } else {
@@ -658,17 +806,66 @@
       }
     }
 
-    // 人數增減控制
-    function updateCounterButtons() {
-      peopleCountEl.textContent = state.people;
-      btnMinus.disabled = (state.people <= 1);
-      btnPlus.disabled = (state.people >= 8);
+    // ----------------- 客製訂做沙發邏輯 -----------------
+    function calculateCustomPrice() {
+      if (currentMode !== 'custom') return;
+
+      // 訂做模式無折扣標籤
+      originalPriceEl.style.display = 'none';
+      totalPriceEl.classList.remove('discounted');
+
+      const sofaType = customState.sofaType;
+      const leather = customState.leatherType;
+
+      if (sofaType === 'traditional') {
+        customQuantitySection.style.display = 'block';
+
+        const pData = CUSTOM_PRICE_DATA.traditional[leather];
+        priceTag1P.textContent = `單價 NT$ ${pData.p1.toLocaleString()}`;
+        priceTag2P.textContent = `單價 NT$ ${pData.p2.toLocaleString()}`;
+        priceTag3P.textContent = `單價 NT$ ${pData.p3.toLocaleString()}`;
+
+        const total = (customState.count1P * pData.p1) +
+                      (customState.count2P * pData.p2) +
+                      (customState.count3P * pData.p3);
+
+        totalPriceEl.textContent = `NT$ ${total.toLocaleString()}`;
+
+        if (total < 10000 && total > 0) {
+          shippingNoteEl.style.display = 'inline';
+        } else {
+          shippingNoteEl.style.display = 'none';
+        }
+      } else if (sofaType === 'standard_l') {
+        customQuantitySection.style.display = 'none';
+
+        const total = CUSTOM_PRICE_DATA.standard_l[leather];
+        totalPriceEl.textContent = `NT$ ${total.toLocaleString()}`;
+
+        if (total < 10000 && total > 0) {
+          shippingNoteEl.style.display = 'inline';
+        } else {
+          shippingNoteEl.style.display = 'none';
+        }
+      } else if (sofaType === 'large_l') {
+        customQuantitySection.style.display = 'none';
+
+        totalPriceEl.textContent = '依規格面議';
+        shippingNoteEl.style.display = 'none';
+      }
     }
+
+    // 維修翻新事件綁定
+    setupGroupClicks(sofaTypeBtns, val => { state.sofaType = val; calculatePrice(); });
+    setupGroupClicks(serviceBtns, val => { state.service = val; calculatePrice(); });
+    setupGroupClicks(leatherTypeBtns, val => { state.leatherType = val; calculatePrice(); });
 
     btnMinus.addEventListener('click', () => {
       if (state.people > 1) {
         state.people--;
-        updateCounterButtons();
+        peopleCountEl.textContent = state.people;
+        btnMinus.disabled = (state.people <= 1);
+        btnPlus.disabled = (state.people >= 8);
         calculatePrice();
       }
     });
@@ -676,12 +873,49 @@
     btnPlus.addEventListener('click', () => {
       if (state.people < 8) {
         state.people++;
-        updateCounterButtons();
+        peopleCountEl.textContent = state.people;
+        btnMinus.disabled = (state.people <= 1);
+        btnPlus.disabled = (state.people >= 8);
         calculatePrice();
       }
     });
 
-    // 點擊 LINE 按鈕：顯示 Toast 提示後直接跳轉至個人 LINE
+    // 客製訂做事件綁定
+    setupGroupClicks(customSofaTypeBtns, val => {
+      customState.sofaType = val;
+      calculateCustomPrice();
+    });
+
+    setupGroupClicks(customLeatherTypeBtns, val => {
+      customState.leatherType = val;
+      calculateCustomPrice();
+    });
+
+    // 訂做沙發數量增減 (1P / 2P / 3P，下限 0，無上限)
+    function setupCustomCounter(minusBtn, plusBtn, countEl, stateKey) {
+      function update() {
+        countEl.textContent = customState[stateKey];
+        minusBtn.disabled = (customState[stateKey] <= 0);
+        calculateCustomPrice();
+      }
+      minusBtn.addEventListener('click', () => {
+        if (customState[stateKey] > 0) {
+          customState[stateKey]--;
+          update();
+        }
+      });
+      plusBtn.addEventListener('click', () => {
+        customState[stateKey]++;
+        update();
+      });
+      update();
+    }
+
+    setupCustomCounter(btnMinus1P, btnPlus1P, count1PEl, 'count1P');
+    setupCustomCounter(btnMinus2P, btnPlus2P, count2PEl, 'count2P');
+    setupCustomCounter(btnMinus3P, btnPlus3P, count3PEl, 'count3P');
+
+    // 點擊 LINE 按鈕：顯示 Toast 提示後跳轉
     btnLine.addEventListener('click', () => {
       toast.classList.add('show');
       setTimeout(() => {
@@ -690,13 +924,10 @@
       }, 700);
     });
 
-    // 初始化事件監聽
-    setupGroupClicks(sofaTypeBtns, 'sofaType');
-    setupGroupClicks(serviceBtns, 'service');
-    setupGroupClicks(leatherTypeBtns, 'leatherType');
-
-    // 首次計算執行
-    updateCounterButtons();
+    // 初始化
+    peopleCountEl.textContent = state.people;
+    btnMinus.disabled = (state.people <= 1);
+    btnPlus.disabled = (state.people >= 8);
     calculatePrice();
   </script>
 </body>
